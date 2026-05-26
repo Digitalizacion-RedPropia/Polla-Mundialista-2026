@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Polla Mundialista 2026 - Tablero</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ request.host_url }}/static/style.css">
 </head>
 <body>
     <main class="content">
         <header class="top-nav">
             <div class="logo-seccion">
-                <img src="{{ url_for('static', filename='../static/logo-repsol.svg') }}" alt="Logo" class="logo-img">
+                <img src="{{ request.host_url }}/static/logo-repsol.svg" alt="Logo" class="logo-img">
                 <div class="divisor-vertical"></div>
                 <h2>Polla Mundialista 2026</h2>
             </div>
@@ -45,7 +45,7 @@
         }
 
         function cargarDatos() {
-            fetch('/api/datos_tablero')
+            fetch(`${window.location.origin}//api/datos_tablero`)
                 .then(res => res.json())
                 .then(datos => {
                     renderizarPrincipal(datos.principal);
