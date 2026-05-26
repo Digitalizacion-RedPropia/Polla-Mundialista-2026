@@ -84,21 +84,44 @@ def traducir_equipo(nombre):
 
 def guardar_datos_excel(partidos):
     df = pl.DataFrame(partidos)
-    df_filtrado = df.select([
-        pl.col("id").alias("ID"),
-        pl.col("group_name").alias("Grupo"),
-        pl.col("round").alias("Fase"),
-        pl.col("home_team").alias("Local"),
-        pl.col("away_team").alias("Visita"),
-        pl.col("home_score").alias("Goles_Local"),
-        pl.col("away_score").alias("Goles_Visita"),
-        pl.col("status").alias("Estado"),
-        pl.col("hora_peru").alias("Hora_Peru"),
-        pl.col("stadium").alias("Estadio"),
-        pl.col("stadium_city").alias("Ciudad")
+    df_final = df.with_columns([
+        # pl.col("id").alias("Id"),
+        # pl.col("group_name").alias("Grupo"),
+        # pl.col("round").alias("Fase"),
+        # pl.col("home_team").alias("Equipo Local"),
+        # pl.col("away_team").alias("Equipo Visitante"),
+        # pl.col("home_score").fill_null(0).alias("Goles Local"),
+        # pl.col("away_score").fill_null(0).alias("Goles Visitante"),
+        # pl.col("home_pen").fill_null(0).alias("Penales Local"),
+        # pl.col("away_pen").fill_null(0).alias("Penales Visitante"),
+        # pl.col("status").alias("Estado"),
+        # pl.col("fecha_peru_str").alias("Fecha"),
+        # pl.col("hora_peru").alias("Hora"),
+        # pl.col("stadium").alias("Estadio"),
+        # pl.col("stadium_city").alias("Ciudad"),
+        
+        pl.when(pl.col("home_pen").is_not_null())
+          .then(pl.lit("Penales"))
+          .otherwise(pl.lit("Regular"))
+          .alias("Tipo de Resultado"),
+          
+        pl.when(pl.col("status") == "completed")
+            .then(
+                pl.when(pl.col("home_pen").is_not_null())
+                .then(
+                    pl.when(pl.col("home_pen") > pl.col("away_pen")).then(pl.col("home_team"))
+                    .otherwise(pl.col("away_team"))
+                )
+                .otherwise(
+                    pl.when(pl.col("home_score") > pl.col("away_score")).then(pl.col("home_team"))
+                    .when(pl.col("away_score") > pl.col("home_score")).then(pl.col("away_team"))
+                    .otherwise(pl.lit("Empate"))
+                )
+          ).otherwise(pl.lit("Por jugar"))
+          .alias("Ganador")
     ])
     ruta_excel = os.path.join(os.getcwd(), 'resultados_partidos.xlsx')
-    df_filtrado.write_excel(ruta_excel)
+    df_final.write_excel(ruta_excel)
 
 def calcular_posiciones_grupos(todos_los_partidos):
     estruct_grupos = {}
