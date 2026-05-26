@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: polla-mundialista-2026
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn src.app:app
+    envVars:
+      - key: WC2026_API_TOKEN
+        sync: false

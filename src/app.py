@@ -146,7 +146,7 @@ def obtener_datos_tablero():
         print("Sincronizando marcadores con la API externa...")
         
         url_api = "https://api.wc2026api.com/matches"
-        token_real = "wc26_4TUutBnL1Qgocn3WrVSmmQ"
+        token_real = os.environ.get("WC2026_API_TOKEN", "")
         headers = {"Authorization": f"Bearer {token_real}", "Accept": "application/json"}
         try:
             respuesta = requests.get(url_api, headers=headers, verify=False)
