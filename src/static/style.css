@@ -310,7 +310,8 @@ body {
     gap: 15px;
     align-items: start;
     
-    max-height: calc(100vh - 150px);
+    /* max-height: calc(100vh - 150px); */
+    max-height: 80vh;
     overflow-y: auto;
     padding-right: 8px;
 }
