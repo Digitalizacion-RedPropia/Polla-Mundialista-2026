@@ -209,7 +209,7 @@ def obtener_datos_tablero():
             print(f"Error de conexión: {e}")
             resultados_en_vivo = []
 
-        fecha_hoy_str = datetime.now(timezone(timedelta(hours=-5))).strftime("%Y-%m-%dT%H:%M:%SZ")
+        fecha_hoy_str = datetime.now(timezone(timedelta(hours=-5))).strftime("%Y-%m-%d")
         
         diccionario_resultados = {r["id"]: r for r in resultados_en_vivo}
         
@@ -230,32 +230,14 @@ def obtener_datos_tablero():
                 
                 p["fecha_peru_str"] = f"{fecha_peru_dt.day} de {MESES[fecha_peru_dt.month]}"
                 p["hora_peru"] = fecha_peru_dt.strftime("%H:%M")
-        
-        # hoy = datetime.strptime(fecha_hoy, "%Y-%m-%d")
-        # manana = (hoy + timedelta(days=1)).strftime("%Y-%m-%d")
-        
-        # todos_interesantes = [p for p in FIXTURE_ESTATICO if p.get("kickoff_utc", "").startswith((fecha_hoy, manana))]
-        
-        # # se ordena por fecha y hora
-        # todos_interesantes.sort(key=lambda x: x.get("kickoff_utc", ""))
-        
-        # principal = None
-        # for p in todos_interesantes:
-        #     if p.get("status") == "live":
-        #         principal = p
-        #         break
-        
-        # if not principal:
-        #     principal = todos_interesantes[0] if todos_interesantes else None
-            
-        # otros = [p for p in todos_interesantes if p != principal]
-        # otros.sort(key=lambda x: x.get("kickoff_utc", ""))
 
-        futuros = [p for p in FIXTURE_ESTATICO if p.get("kickoff_utc", "") >= fecha_hoy_str]
-        if futuros:
-            futuros.sort(key=lambda x: x.get("kickoff_utc", ""))
-            principal = futuros[0]
-            otros = futuros[1:4]
+        para_mostrar = [p for p in FIXTURE_ESTATICO if p.get("kickoff_utc", "")[:10] >= fecha_hoy_str]
+        
+        para_mostrar.sort(key=lambda x: x.get("kickoff_utc", ""))
+        
+        if para_mostrar:
+            principal = para_mostrar[0]
+            otros = para_mostrar[1:4] 
         else:
             FIXTURE_ESTATICO.sort(key=lambda x: x.get("kickoff_utc", ""), reverse=True)
             principal = FIXTURE_ESTATICO[0]
