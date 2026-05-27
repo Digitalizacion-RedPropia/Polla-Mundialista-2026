@@ -131,7 +131,9 @@ def guardar_datos_excel(partidos):
                     .otherwise(pl.lit("Empate"))
                 )
           ).otherwise(pl.lit("Por jugar"))
-          .alias("Ganador")
+          .alias("Ganador"),
+
+        (pl.col("home_team") + " vs " + pl.col("away_team")).alias("Partido")
     ])
     ruta_excel = os.path.join(os.getcwd(), 'resultados_partidos.xlsx')
     df_final.write_excel(ruta_excel)
@@ -196,6 +198,8 @@ def obtener_datos_tablero():
     global cache_tablero, ultima_actualizacion
     ahora = time.time()
     
+    # fecha_hoy = "2026-06-11" 
+    
     if not cache_tablero or (ahora - ultima_actualizacion > TIEMPO_CACHE):
         print("Sincronizando marcadores con la API externa...")
         
@@ -230,6 +234,36 @@ def obtener_datos_tablero():
                 
                 p["fecha_peru_str"] = f"{fecha_peru_dt.day} de {MESES[fecha_peru_dt.month]}"
                 p["hora_peru"] = fecha_peru_dt.strftime("%H:%M")
+        
+        # hoy = datetime.strptime(fecha_hoy, "%Y-%m-%d")
+        # manana = (hoy + timedelta(days=1)).strftime("%Y-%m-%d")
+        
+        # todos_interesantes = [p for p in FIXTURE_ESTATICO if p.get("kickoff_utc", "").startswith((fecha_hoy, manana))]
+        
+        # # se ordena por fecha y hora
+        # todos_interesantes.sort(key=lambda x: x.get("kickoff_utc", ""))
+        
+        # principal = None
+        # for p in todos_interesantes:
+        #     if p.get("status") == "live":
+        #         principal = p
+        #         break
+        
+        # if not principal:
+        #     principal = todos_interesantes[0] if todos_interesantes else None
+            
+        # otros = [p for p in todos_interesantes if p != principal]
+        # otros.sort(key=lambda x: x.get("kickoff_utc", ""))
+
+        # futuros = [p for p in FIXTURE_ESTATICO if p.get("kickoff_utc", "") >= fecha_hoy_str]
+        # if futuros:
+        #     futuros.sort(key=lambda x: x.get("kickoff_utc", ""))
+        #     principal = futuros[0]
+        #     otros = futuros[1:4]
+        # else:
+        #     FIXTURE_ESTATICO.sort(key=lambda x: x.get("kickoff_utc", ""), reverse=True)
+        #     principal = FIXTURE_ESTATICO[0]
+        #     otros = FIXTURE_ESTATICO[1:4]
 
         para_mostrar = [p for p in FIXTURE_ESTATICO if p.get("kickoff_utc", "")[:10] >= fecha_hoy_str]
         
