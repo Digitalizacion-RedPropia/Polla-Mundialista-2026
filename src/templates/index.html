@@ -71,16 +71,18 @@
                 contenedor.innerHTML = '<div class="hero-match"><p>No hay partidos programados para hoy.</p></div>';
                 return;
             }
-            // Aquí usamos los valores forzados a 0
             const g1 = partido.home_score !== null ? partido.home_score : 0;
             const g2 = partido.away_score !== null ? partido.away_score : 0;
             const estado = traducirEstado(partido.status);
-            const hora = partido.hora_peru || ''; 
+            // const hora = partido.hora_peru || ''; 
+            const infoTiempo = estado === 'Programado' 
+                ? `Programado - ${partido.fecha_peru_str} • ${partido.hora_peru}` 
+                : estado;
             const faseText = partido.group_name ? `Grupo ${partido.group_name}` : traducirRonda(partido.round);
 
             contenedor.innerHTML = `
                 <section class="hero-match">
-                    <div class="match-status">${estado} ${estado === 'Programado' ? ' - ' + hora : ''}</div>
+                    <div class="match-status">${infoTiempo}</div>
                     <div class="scoreboard">
                         <div class="team"><h2>${partido.home_team || 'Por Clasificar'}</h2><p class="meta">${faseText}</p></div>
                         <div class="score-center">
