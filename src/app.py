@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 import json
 import os
@@ -20,7 +20,7 @@ except FileNotFoundError:
 
 cache_tablero = {}
 ultima_actualizacion = 0
-TIEMPO_CACHE = 21600
+TIEMPO_CACHE = 10800
 
 TRADUCCION_PAISES = {
     "Mexico": "México",
@@ -82,6 +82,19 @@ MESES = {
 def traducir_equipo(nombre):
     return TRADUCCION_PAISES.get(nombre, nombre)
 
+def enviar_a_google_sheets(df_final):
+    url_webhook = "https://script.google.com/macros/s/AKfycbz9RHYATwMmuL6jJkgOr59ucXZEB2cJ0RdVAKPk7qcMtq58M4ODZM-sRLK4DwMfbx8/exec"
+    
+    encabezados = [df_final.columns]
+    filas = df_final.rows()
+    data_final = encabezados + [list(fila) for fila in filas]
+
+    try:
+        response = requests.post(url_webhook, json=data_final, verify=False)
+        print("Respuesta de Google:", response.status_code)
+    except Exception as e:
+        print("Error al enviar a Google Sheets:", e)
+
 def guardar_datos_excel(partidos):
     df = pl.DataFrame(partidos)
     df_final = df.with_columns([
@@ -122,6 +135,7 @@ def guardar_datos_excel(partidos):
     ])
     ruta_excel = os.path.join(os.getcwd(), 'resultados_partidos.xlsx')
     df_final.write_excel(ruta_excel)
+    enviar_a_google_sheets(df_final)
 
 def calcular_posiciones_grupos(todos_los_partidos):
     estruct_grupos = {}
@@ -182,7 +196,7 @@ def obtener_datos_tablero():
     global cache_tablero, ultima_actualizacion
     ahora = time.time()
     
-    fecha_hoy = "2026-06-11" 
+    # fecha_hoy = "2026-06-11" 
     
     if not cache_tablero or (ahora - ultima_actualizacion > TIEMPO_CACHE):
         print("Sincronizando marcadores con la API externa...")
@@ -196,6 +210,8 @@ def obtener_datos_tablero():
         except Exception as e:
             print(f"Error de conexión: {e}")
             resultados_en_vivo = []
+
+        fecha_hoy_str = datetime.now(timezone(timedelta(hours=-5))).strftime("%Y-%m-%dT%H:%M:%SZ")
         
         diccionario_resultados = {r["id"]: r for r in resultados_en_vivo}
         
@@ -217,41 +233,50 @@ def obtener_datos_tablero():
                 p["fecha_peru_str"] = f"{fecha_peru_dt.day} de {MESES[fecha_peru_dt.month]}"
                 p["hora_peru"] = fecha_peru_dt.strftime("%H:%M")
         
-        hoy = datetime.strptime(fecha_hoy, "%Y-%m-%d")
-        manana = (hoy + timedelta(days=1)).strftime("%Y-%m-%d")
+        # hoy = datetime.strptime(fecha_hoy, "%Y-%m-%d")
+        # manana = (hoy + timedelta(days=1)).strftime("%Y-%m-%d")
         
-        todos_interesantes = [p for p in FIXTURE_ESTATICO if p.get("kickoff_utc", "").startswith((fecha_hoy, manana))]
+        # todos_interesantes = [p for p in FIXTURE_ESTATICO if p.get("kickoff_utc", "").startswith((fecha_hoy, manana))]
         
-        # se ordena por fecha y hora
-        todos_interesantes.sort(key=lambda x: x.get("kickoff_utc", ""))
+        # # se ordena por fecha y hora
+        # todos_interesantes.sort(key=lambda x: x.get("kickoff_utc", ""))
         
+        # principal = None
+        # for p in todos_interesantes:
+        #     if p.get("status") == "live":
+        #         principal = p
+        #         break
         
-        principal = None
-        for p in todos_interesantes:
-            if p.get("status") == "live":
-                principal = p
-                break
-        
-        if not principal:
-            principal = todos_interesantes[0] if todos_interesantes else None
+        # if not principal:
+        #     principal = todos_interesantes[0] if todos_interesantes else None
             
-        otros = [p for p in todos_interesantes if p != principal]
-        otros.sort(key=lambda x: x.get("kickoff_utc", ""))
+        # otros = [p for p in todos_interesantes if p != principal]
+        # otros.sort(key=lambda x: x.get("kickoff_utc", ""))
+
+        futuros = [p for p in FIXTURE_ESTATICO if p.get("kickoff_utc", "") >= fecha_hoy_str]
+        if futuros:
+            futuros.sort(key=lambda x: x.get("kickoff_utc", ""))
+            principal = futuros[0]
+            otros = futuros[1:4]
+        else:
+            FIXTURE_ESTATICO.sort(key=lambda x: x.get("kickoff_utc", ""), reverse=True)
+            principal = FIXTURE_ESTATICO[0]
+            otros = FIXTURE_ESTATICO[1:4]
 
         guardar_datos_excel(FIXTURE_ESTATICO)
 
         es_fase_grupos = True
         partidos_eliminatoria = []
         
-        if fecha_hoy >= "2026-06-28":
+        if fecha_hoy_str >= "2026-06-28":
             es_fase_grupos = False
             eliminatorias = [p for p in FIXTURE_ESTATICO if p.get("round") != "group"]
             ronda_activa = "R32"
             for p in eliminatorias:
-                if p.get("kickoff_utc", "")[:10] >= fecha_hoy:
+                if p.get("kickoff_utc", "")[:10] >= fecha_hoy_str:
                     ronda_activa = p.get("round")
                     break
-            if fecha_hoy > "2026-07-19": ronda_activa = "final"
+            if fecha_hoy_str > "2026-07-19": ronda_activa = "final"
             partidos_eliminatoria = [p for p in FIXTURE_ESTATICO if p.get("round") == ronda_activa]
         
         tablas_grupos = calcular_posiciones_grupos(FIXTURE_ESTATICO)
