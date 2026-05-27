@@ -196,8 +196,6 @@ def obtener_datos_tablero():
     global cache_tablero, ultima_actualizacion
     ahora = time.time()
     
-    # fecha_hoy = "2026-06-11" 
-    
     if not cache_tablero or (ahora - ultima_actualizacion > TIEMPO_CACHE):
         print("Sincronizando marcadores con la API externa...")
         
