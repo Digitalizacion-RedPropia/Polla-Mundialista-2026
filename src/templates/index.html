@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -15,11 +15,15 @@
                 <h2>Polla Mundialista 2026</h2>
             </div>
             <div class="nav-acciones">
-                <a href="#" class="btn-apuesta">Apuesta aquí</a>
+                <div class="tabs">
+                    <span id="tab-tablero" class="active" onclick="cambiarVista('tablero')">Tablero</span>
+                    <span id="tab-ranking" onclick="cambiarVista('ranking')">Ranking</span>
+                </div>
+                <a href="#" class="btn-apuesta">Apuesta aqui</a>
             </div>
         </header>
 
-        <div class="dashboard-grid">
+        <div class="dashboard-grid" id="vista-tablero">
             <div class="columna-partidos">
                 <div id="contenedor-principal"></div>
                 <h3 class="section-title">Resto de la jornada</h3>
@@ -31,6 +35,25 @@
                 <div class="scroll-grupos" id="contenedor-grupos"></div>
             </div>
         </div>
+
+        <section id="vista-ranking" class="ranking-view hidden">
+            <h3 class="section-title">Ranking General de Participantes</h3>
+            <div id="ranking-podio" class="ranking-podium"></div>
+            <div class="ranking-tabla-wrap">
+                <table class="ranking-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Usuario</th>
+                            <th>Aciertos</th>
+                            <th>Puntos</th>
+                            <th>Distancia al lider</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-body"></tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
     <script>
@@ -50,19 +73,46 @@
                 .then(datos => {
                     renderizarPrincipal(datos.principal);
                     renderizarOtros(datos.otros);
-                    
+
                     const tituloDerecho = document.getElementById('titulo-columna-derecha');
-                    
+
                     if (datos.es_fase_grupos) {
-                        tituloDerecho.innerText = "Posiciones de Grupos";
+                        tituloDerecho.innerText = 'Posiciones de Grupos';
                         renderizarGrupos(datos.grupos);
                     } else {
-                        const nombreRonda = datos.partidos_eliminatoria.length > 0 ? traducirRonda(datos.partidos_eliminatoria[0].round) : "Fase Final";
-                        tituloDerecho.innerText = "Cruces: " + nombreRonda;
+                        const nombreRonda = datos.partidos_eliminatoria.length > 0 ? traducirRonda(datos.partidos_eliminatoria[0].round) : 'Fase Final';
+                        tituloDerecho.innerText = 'Cruces: ' + nombreRonda;
                         renderizarEliminatorias(datos.partidos_eliminatoria);
                     }
                 })
-                .catch(err => console.error("Error al cargar:", err));
+                .catch(err => console.error('Error al cargar:', err));
+        }
+
+        function cargarRanking() {
+            fetch('/api/ranking')
+                .then(res => res.json())
+                .then(datos => renderizarRanking(datos.ranking || []))
+                .catch(err => console.error('Error al cargar ranking:', err));
+        }
+
+        function cambiarVista(vista) {
+            const vistaTablero = document.getElementById('vista-tablero');
+            const vistaRanking = document.getElementById('vista-ranking');
+            const tabTablero = document.getElementById('tab-tablero');
+            const tabRanking = document.getElementById('tab-ranking');
+
+            if (vista === 'ranking') {
+                vistaTablero.classList.add('hidden');
+                vistaRanking.classList.remove('hidden');
+                tabRanking.classList.add('active');
+                tabTablero.classList.remove('active');
+                return;
+            }
+
+            vistaRanking.classList.add('hidden');
+            vistaTablero.classList.remove('hidden');
+            tabTablero.classList.add('active');
+            tabRanking.classList.remove('active');
         }
 
         function renderizarPrincipal(partido) {
@@ -74,9 +124,8 @@
             const g1 = partido.home_score !== null ? partido.home_score : 0;
             const g2 = partido.away_score !== null ? partido.away_score : 0;
             const estado = traducirEstado(partido.status);
-            // const hora = partido.hora_peru || ''; 
-            const infoTiempo = estado === 'Programado' 
-                ? `Programado - ${partido.fecha_peru_str} • ${partido.hora_peru}` 
+            const infoTiempo = estado === 'Programado'
+                ? `Programado - ${partido.fecha_peru_str} - ${partido.hora_peru}`
                 : estado;
             const faseText = partido.group_name ? `Grupo ${partido.group_name}` : traducirRonda(partido.round);
 
@@ -103,14 +152,14 @@
                 const g1 = p.home_score !== null ? p.home_score : '-';
                 const g2 = p.away_score !== null ? p.away_score : '-';
                 const infoFase = p.group_name ? `Grupo ${p.group_name}` : traducirRonda(p.round);
-                
-                const fechaMostrar = p.fecha_peru_str || "";
+
+                const fechaMostrar = p.fecha_peru_str || '';
 
                 html += `
                     <div class="match-card">
                         <div class="card-header">
                             <span class="fase-tag">${infoFase}</span>
-                            <span class="fecha-hora-tag">${fechaMostrar} • ${p.hora_peru}</span>
+                            <span class="fecha-hora-tag">${fechaMostrar} - ${p.hora_peru}</span>
                         </div>
                         <div class="card-teams">
                             <div class="team-row">
@@ -127,7 +176,7 @@
             });
             contenedor.innerHTML = html;
         }
-        
+
         function renderizarGrupos(grupos) {
             const contenedor = document.getElementById('contenedor-grupos');
             let html = '';
@@ -170,8 +219,40 @@
             contenedor.innerHTML = html;
         }
 
+        function renderizarRanking(ranking) {
+            const podio = document.getElementById('ranking-podio');
+            const body = document.getElementById('ranking-body');
+            const top3 = ranking.slice(0, 3);
+            const resto = ranking.slice(3);
+
+            podio.innerHTML = top3.map((u, index) => {
+                const medalla = index === 0 ? '1er lugar' : (index === 1 ? '2do lugar' : '3er lugar');
+                return `
+                    <div class="podium-card podium-${index + 1}">
+                        <div class="podium-rank">${medalla}</div>
+                        <h4>${u.nombre}</h4>
+                        <p>${u.puntos} pts</p>
+                        <span>${u.aciertos} aciertos</span>
+                    </div>
+                `;
+            }).join('');
+
+            body.innerHTML = resto.map(u => `
+                <tr>
+                    <td>${u.posicion}</td>
+                    <td class="user-name">${u.nombre}</td>
+                    <td>${u.aciertos}</td>
+                    <td class="points">${u.puntos}</td>
+                    <td>${u.diferencia_lider === 0 ? '-' : u.diferencia_lider}</td>
+                </tr>
+            `).join('');
+        }
+
         cargarDatos();
+        cargarRanking();
         setInterval(cargarDatos, 60000);
+        setInterval(cargarRanking, 60000);
     </script>
 </body>
 </html>
+

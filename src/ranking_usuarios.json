@@ -1,0 +1,12 @@
+[
+  {"nombre": "Ana Torres", "puntos": 64, "aciertos": 21},
+  {"nombre": "Luis Rojas", "puntos": 58, "aciertos": 19},
+  {"nombre": "Camila Vega", "puntos": 56, "aciertos": 18},
+  {"nombre": "Diego Paredes", "puntos": 52, "aciertos": 17},
+  {"nombre": "Sofia Mendoza", "puntos": 49, "aciertos": 16},
+  {"nombre": "Carlos Flores", "puntos": 45, "aciertos": 15},
+  {"nombre": "Valeria Cruz", "puntos": 42, "aciertos": 14},
+  {"nombre": "Jorge Salas", "puntos": 40, "aciertos": 13},
+  {"nombre": "Paula Leon", "puntos": 38, "aciertos": 12},
+  {"nombre": "Mario Quispe", "puntos": 35, "aciertos": 11}
+]

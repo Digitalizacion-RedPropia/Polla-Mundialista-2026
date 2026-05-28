@@ -78,9 +78,28 @@ MESES = {
     5: "mayo", 6: "junio", 7: "julio", 8: "agosto", 
     9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
 }
+ruta_ranking = os.path.join(os.path.dirname(__file__), 'ranking_usuarios.json')
 
 def traducir_equipo(nombre):
     return TRADUCCION_PAISES.get(nombre, nombre)
+
+
+def obtener_ranking_usuarios():
+    try:
+        with open(ruta_ranking, 'r', encoding='utf-8') as f:
+            ranking = json.load(f)
+    except Exception as e:
+        print(f"Error cargando ranking: {e}")
+        ranking = []
+
+    ranking_ordenado = sorted(ranking, key=lambda x: x.get("puntos", 0), reverse=True)
+    puntos_lider = ranking_ordenado[0].get("puntos", 0) if ranking_ordenado else 0
+
+    for idx, usuario in enumerate(ranking_ordenado, start=1):
+        usuario["posicion"] = idx
+        usuario["diferencia_lider"] = max(0, puntos_lider - usuario.get("puntos", 0))
+
+    return {"ranking": ranking_ordenado}
 
 def enviar_a_google_sheets(df_final):
     url_webhook = "https://script.google.com/macros/s/AKfycbz9RHYATwMmuL6jJkgOr59ucXZEB2cJ0RdVAKPk7qcMtq58M4ODZM-sRLK4DwMfbx8/exec"
@@ -272,6 +291,11 @@ def home():
 @app.route('/api/datos_tablero')
 def api_tablero():
     return jsonify(obtener_datos_tablero())
+
+
+@app.route('/api/ranking')
+def api_ranking():
+    return jsonify(obtener_ranking_usuarios())
 
 if __name__ == '__main__':
     app.run(debug=True)

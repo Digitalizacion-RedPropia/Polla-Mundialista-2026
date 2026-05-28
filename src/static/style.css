@@ -55,6 +55,12 @@ body {
     z-index: 100;
 }
 
+.nav-acciones {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
 .logo-img {
     height: 30px; 
     width: auto;
@@ -114,6 +120,10 @@ body {
 .tabs .active {
     background-color: var(--bg-teal-soft);
     color: var(--color-teal);
+}
+
+.hidden {
+    display: none !important;
 }
 
 .section-title {
@@ -416,4 +426,121 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.ranking-view {
+    padding: 25px;
+}
+
+.ranking-podium {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.podium-card {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.podium-rank {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.podium-card h4 {
+    color: var(--color-teal);
+    margin: 8px 0;
+    font-size: 1.1rem;
+}
+
+.podium-card p {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--color-coral);
+}
+
+.podium-card span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.podium-1 {
+    border-top: 4px solid #d9a400;
+}
+
+.podium-2 {
+    border-top: 4px solid #9ca3af;
+}
+
+.podium-3 {
+    border-top: 4px solid #b26d44;
+}
+
+.ranking-tabla-wrap {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.ranking-table th {
+    background-color: var(--bg-nav);
+    color: var(--color-teal);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 12px;
+    text-align: center;
+}
+
+.ranking-table td {
+    border-top: 1px solid #f0f0f0;
+    padding: 12px;
+    text-align: center;
+}
+
+.ranking-table .user-name {
+    text-align: left;
+    font-weight: 700;
+    color: var(--color-teal);
+}
+
+.ranking-table .points {
+    font-weight: 800;
+    color: var(--color-coral);
+}
+
+@media (max-width: 1000px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .scroll-grupos {
+        grid-template-columns: 1fr;
+        max-height: none;
+    }
+
+    .ranking-podium {
+        grid-template-columns: 1fr;
+    }
+
+    .top-nav {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 }
