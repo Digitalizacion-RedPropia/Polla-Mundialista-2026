@@ -222,7 +222,8 @@
             const podio = document.getElementById('ranking-podio');
             const body = document.getElementById('ranking-body');
             const top3 = ranking.slice(0, 3);
-            const resto = ranking.slice(3);
+            // const resto = ranking.slice(3);
+            const resto = ranking;
 
             podio.innerHTML = top3.map((u, index) => {
                 const medalla = index === 0 ? '1er lugar' : (index === 1 ? '2do lugar' : '3er lugar');
@@ -242,7 +243,6 @@
                     <td class="user-name">${u.nombre}</td>
                     <td>${u.aciertos}</td>
                     <td class="points">${u.puntos}</td>
-                    <td>${u.diferencia_lider === 0 ? '-' : u.diferencia_lider}</td>
                 </tr>
             `).join('');
         }
