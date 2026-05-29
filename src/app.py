@@ -87,19 +87,42 @@ def traducir_equipo(nombre):
 def obtener_ranking_usuarios():
     try:
         with open(ruta_ranking, 'r', encoding='utf-8') as f:
-            ranking = json.load(f)
+            registros_apuestas = json.load(f)
     except Exception as e:
         print(f"Error cargando ranking: {e}")
-        ranking = []
+        registros_apuestas = []
 
-    ranking_ordenado = sorted(ranking, key=lambda x: x.get("puntos", 0), reverse=True)
-    puntos_lider = ranking_ordenado[0].get("puntos", 0) if ranking_ordenado else 0
+    usuarios_consolidados = {}
+
+    for reg in registros_apuestas:
+        usuario = reg.get("CreatedBy")
+        if not usuario:
+            continue
+            
+        if usuario not in usuarios_consolidados:
+            usuarios_consolidados[usuario] = {
+                "nombre": usuario,
+                "puntos": 0,
+                "aciertos": 0
+            }
+        
+        puntos = int(reg.get("PuntajeObtenido", 0))
+        usuarios_consolidados[usuario]["puntos"] += puntos
+        
+        if puntos > 0:
+            usuarios_consolidados[usuario]["aciertos"] += 1
+
+    ranking_ordenado = sorted(
+        list(usuarios_consolidados.values()), 
+        key=lambda x: (x.get("puntos", 0), x.get("nombre", "")), 
+        reverse=True
+    )
 
     for idx, usuario in enumerate(ranking_ordenado, start=1):
         usuario["posicion"] = idx
-        usuario["diferencia_lider"] = max(0, puntos_lider - usuario.get("puntos", 0))
 
     return {"ranking": ranking_ordenado}
+
 
 def enviar_a_google_sheets(df_final):
     url_webhook = "https://script.google.com/macros/s/AKfycbz9RHYATwMmuL6jJkgOr59ucXZEB2cJ0RdVAKPk7qcMtq58M4ODZM-sRLK4DwMfbx8/exec"
